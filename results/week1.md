@@ -72,3 +72,61 @@ LIMIT 5;
 - ORDER BY title のように文字列でも並び替えできるか
 - LIMIT を書く位置のルール
 - 何を基準に id DESC にすればよいか
+
+## Day4（2026-04-09）
+### テーマ
+自分のアプリに戻して、最低限のテーブルと列名を整理する
+
+### わかったこと
+- 自分のアプリでは users / articles / categories / faqs が土台になる
+- 列名は最初から増やしすぎず、最低限から考える
+- user_id は「誰が作ったか」を表す
+- category_id は「どの分類に属するか」を表す
+- DBの外部キーと Rails の belongs_to / has_many は対応している
+
+### 最低限のテーブルと列
+users
+- id
+- name
+- email
+
+articles
+- id
+- title
+- body
+- status
+- user_id
+- category_id
+
+categories
+- id
+- name
+
+faqs
+- id
+- question
+- answer
+- status
+- user_id
+
+### 関連のメモ
+- 1人の user は複数の articles を持てる
+- 1つの article は1人の user に属する
+- 1つの article は1つの category に属する
+- 1つの category には複数の articles が入る
+- 1人の user は複数の faqs を持てる
+- 1つの faq は1人の user に属する
+
+### Rails側の対応イメージ
+- Article belongs_to :user
+- Article belongs_to :category
+- User has_many :articles
+- Category has_many :articles
+- Faq belongs_to :user
+- User has_many :faqs
+
+### まだ曖昧なこと
+- status を文字列で持つか数値で持つか
+- body と answer の型をどうするか
+- created_at や published_at をどの段階で足すか
+- categories と faqs を今後どう広げるか
