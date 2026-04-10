@@ -130,3 +130,31 @@ faqs
 - body と answer の型をどうするか
 - created_at や published_at をどの段階で足すか
 - categories と faqs を今後どう広げるか
+
+## Day5（2026-04-10）
+### テーマ
+INSERT / UPDATE / DELETE の基本
+
+### わかったこと
+- INSERT は新しい行を追加する
+- UPDATE は既存の行を変更する
+- DELETE は既存の行を削除する
+- UPDATE と DELETE は WHERE がないと危険
+- 最初は id で1件を指定して扱うと分かりやすい
+
+### 書いたSQL
+INSERT INTO articles (title, body, status, user_id, category_id)
+VALUES ('はじめての記事', '本文です', 'draft', 1, 2);
+
+UPDATE articles
+SET status = 'published'
+WHERE id = 3;
+
+DELETE FROM faqs
+WHERE id = 5;
+
+### まだ曖昧なこと
+- INSERT で全部の列を書かないとどうなるか
+- UPDATE で複数列を変える書き方
+- DELETE と論理削除の違い
+- Rails ではどう書くのか
