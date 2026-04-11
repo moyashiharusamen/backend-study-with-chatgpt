@@ -158,3 +158,49 @@ WHERE id = 5;
 - UPDATE で複数列を変える書き方
 - DELETE と論理削除の違い
 - Rails ではどう書くのか
+
+## Day6（2026-04-11）
+### テーマ
+関連整理（relation memo）と JOIN の最初の1本
+
+### わかったこと
+- users / articles / categories / faqs の関係を 1:N で整理できる
+- belongs_to 側に外部キーがある
+- DBの外部キーと Rails の belongs_to / has_many は対応している
+- JOIN は別テーブルの情報を一緒に見るために使う
+- articles.user_id = users.id のようにキーでつなぐ
+
+### relation memo
+- users 1:N articles
+- categories 1:N articles
+- users 1:N faqs
+
+### 関連を日本語で書いたメモ
+- 1人の user は複数の articles を持てる
+- 1つの article は1人の user に属する
+- 1つの category には複数の articles が入る
+- 1つの article は1つの category に属する
+- 1人の user は複数の faqs を持てる
+- 1つの faq は1人の user に属する
+
+### Rails側の対応イメージ
+- Article belongs_to :user
+- Article belongs_to :category
+- User has_many :articles
+- Category has_many :articles
+- Faq belongs_to :user
+- User has_many :faqs
+
+### 最初に見た JOIN
+SELECT articles.id, articles.title, users.name
+FROM articles
+JOIN users ON articles.user_id = users.id;
+
+### JOIN の意味
+- 記事と、その記事を書いたユーザー名を一緒に見る
+
+### まだ曖昧なこと
+- JOIN の構文をどこまで覚えるべきか
+- JOIN と WHERE を同時に使うときの読み方
+- category を article に複数付けたい場合はどうするか
+- Rails で実際に関連をどう定義するか
