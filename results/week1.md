@@ -204,3 +204,54 @@ JOIN users ON articles.user_id = users.id;
 - JOIN と WHERE を同時に使うときの読み方
 - category を article に複数付けたい場合はどうするか
 - Rails で実際に関連をどう定義するか
+
+## Day7（2026-04-12 / 4月12日（日））
+### テーマ
+Week1まとめ（理解したこと / 曖昧なこと / 来週やること を書く）
+
+### 今週理解したこと
+- テーブルはデータの表、カラムは項目、主キーは1件を区別するもの
+- 外部キーは他テーブルとのつながりを表す
+- users / articles / categories / faqs が自分のアプリの土台になる
+- SELECT は列を選ぶ、WHERE は行を絞る
+- ORDER BY は並び順、LIMIT は件数を絞る
+- INSERT は追加、UPDATE は変更、DELETE は削除
+- UPDATE と DELETE は WHERE がないと危険
+- users 1:N articles、categories 1:N articles、users 1:N faqs と整理できる
+- JOIN は別テーブルの情報を一緒に見るために使う
+- articles.user_id = users.id のように外部キーでつなぐ
+
+### 今週書いた・見た代表的なSQL
+SELECT id, title
+FROM articles
+WHERE status = 'published'
+ORDER BY id DESC
+LIMIT 5;
+
+INSERT INTO articles (title, body, status, user_id, category_id)
+VALUES ('はじめての記事', '本文です', 'draft', 1, 2);
+
+UPDATE articles
+SET status = 'published'
+WHERE id = 3;
+
+DELETE FROM faqs
+WHERE id = 5;
+
+SELECT articles.id, articles.title, users.name
+FROM articles
+JOIN users ON articles.user_id = users.id;
+
+### まだ曖昧なこと
+- 外部キーの「列」と「制約」の違い
+- status を文字列で持つか数値で持つか
+- created_at や published_at をいつ足すか
+- JOIN と WHERE を同時に使うときの読み方
+- Rails で関連をどう書くか
+- migration でテーブルをどう作るか
+
+### 来週やること
+- CREATE TABLE と migration の基本を見る
+- Rails で belongs_to / has_many を実際に書く
+- JOIN と WHERE を組み合わせた簡単なSQLを読む
+- 自分のアプリのテーブル設計メモを少し具体化する
