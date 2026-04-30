@@ -355,3 +355,213 @@ WHERE articles.status = 'published';
 - `articles.category_id = categories.id` の意味を言える
 - 2つの簡単な JOIN 文を日本語で説明できる
 - `JOIN` と `WHERE` の役割の違いを言える
+
+# Week3 Day3（2026-04-30 / 4月30日（木））
+テーマ: JOIN + WHERE + ORDER BY をまとめて読む
+
+## この日の位置づけ
+- Week3 Day2 では `JOIN` を使って参照関係を読むところまで進んだ
+- 今日はその続きとして、`JOIN` した結果に `WHERE` と `ORDER BY` を足して読む
+- 一覧画面っぽい SQL を読む最初の日
+
+## 到達目標
+- `SELECT` / `FROM` / `JOIN` / `ON` / `WHERE` / `ORDER BY` を役割ごとに分けて読める
+- `JOIN` はテーブルをつなぐ、`WHERE` は行を絞る、`ORDER BY` は並び順を決めると説明できる
+- `articles` と `users` を JOIN した SQL を読んで、どんな一覧を作りたいかを日本語で言える
+- 公開済み記事だけに絞る SQL を読める
+- 新しい順、古い順、名前順などの並び替えを読める
+- 簡単な一覧取得 SQL を 2〜3 本読んで意味を説明できる
+
+## 学習時間
+- 20:00〜20:45（45分）
+
+## 進め方
+
+### 20:00〜20:05
+導入
+- `JOIN` = 別テーブルの情報を一緒に見る
+- `ON` = どの列同士をつなぐかを書く
+- `articles.user_id = users.id`
+- `articles.category_id = categories.id`
+- 前回は「つなぐ」まで
+- 今日は「つないだあとに絞って並べる」
+
+### 20:05〜20:12
+まず役割を整理する
+- `SELECT` = 何を表示するか
+- `FROM` = どのテーブルを土台にするか
+- `JOIN` = どのテーブルを追加でつなぐか
+- `ON` = どの列同士を対応させるか
+- `WHERE` = どの行だけに絞るか
+- `ORDER BY` = どんな順番で並べるか
+- `LIMIT` = 何件まで表示するか
+
+### 20:12〜20:22
+JOIN + WHERE を読む
+
+```sql
+SELECT articles.title, users.name
+FROM articles
+JOIN users ON articles.user_id = users.id
+WHERE articles.status = 'published';
+```
+
+見るポイント:
+- `SELECT articles.title, users.name` = 記事タイトルと投稿者名を表示したい
+- `FROM articles` = articles を土台にする
+- `JOIN users ON articles.user_id = users.id` = users をつないで投稿者名を取れるようにする
+- `WHERE articles.status = 'published'` = 公開済みの記事だけに絞る
+
+この SQL の意味:
+- 公開済みの記事だけを対象にして、記事タイトルと投稿者名を表示する
+
+### 20:22〜20:30
+JOIN + ORDER BY を読む
+
+```sql
+SELECT articles.title, users.name, articles.published_at
+FROM articles
+JOIN users ON articles.user_id = users.id
+WHERE articles.status = 'published'
+ORDER BY articles.published_at DESC;
+```
+
+見るポイント:
+- `ORDER BY articles.published_at DESC` = 公開日の新しい順に並べる
+- `DESC` = 降順 = 新しい順でよく使う
+- `ASC` = 昇順 = 古い順や A→Z など
+
+この SQL の意味:
+- 公開済みの記事を、新しい公開日順に並べて、タイトル・投稿者名・公開日時を表示する
+
+### 20:30〜20:35
+categories も含めた一覧を読む
+
+```sql
+SELECT articles.title, users.name, categories.name, articles.published_at
+FROM articles
+JOIN users ON articles.user_id = users.id
+JOIN categories ON articles.category_id = categories.id
+WHERE articles.status = 'published'
+ORDER BY articles.published_at DESC;
+```
+
+見るポイント:
+- `users` をつないで投稿者名を取る
+- `categories` をつないでカテゴリ名を取る
+- 公開済み記事だけに絞る
+- 公開日の新しい順に並べる
+
+この SQL の意味:
+- 公開済みの記事一覧を、新しい順で、タイトル・投稿者名・カテゴリ名・公開日時つきで表示する
+
+### 20:35〜20:39
+LIMIT を足したときの読み方を知る
+
+```sql
+SELECT articles.title, users.name, articles.published_at
+FROM articles
+JOIN users ON articles.user_id = users.id
+WHERE articles.status = 'published'
+ORDER BY articles.published_at DESC
+LIMIT 5;
+```
+
+見るポイント:
+- `LIMIT 5` = 5件まで表示する
+
+この SQL の意味:
+- 公開済みの記事を新しい順に並べて、上から 5 件だけ表示する
+
+### 20:39〜20:42
+自分のアプリに当てはめるミニ演習
+- 「公開済みの記事のタイトルと投稿者名を見たい」→ `articles` と `users` を JOIN、`WHERE articles.status = 'published'`
+- 「公開済みの記事を新しい順で見たい」→ `ORDER BY articles.published_at DESC`
+- 「公開済みの記事を 5 件だけ見たい」→ `LIMIT 5`
+
+### 20:42〜20:45
+まとめ
+- `JOIN` と `WHERE` の違い
+- `ORDER BY` は何をするか
+- `LIMIT` は何をするか
+- この 3 つを言えるか確認する
+
+## この日に使うサンプル SQL
+
+### 1. 公開済み記事のタイトルと投稿者名を見る
+
+```sql
+SELECT articles.title, users.name
+FROM articles
+JOIN users ON articles.user_id = users.id
+WHERE articles.status = 'published';
+```
+
+### 2. 公開済み記事を新しい順に見る
+
+```sql
+SELECT articles.title, users.name, articles.published_at
+FROM articles
+JOIN users ON articles.user_id = users.id
+WHERE articles.status = 'published'
+ORDER BY articles.published_at DESC;
+```
+
+### 3. 投稿者名とカテゴリ名も含めた一覧を見る
+
+```sql
+SELECT articles.title, users.name, categories.name, articles.published_at
+FROM articles
+JOIN users ON articles.user_id = users.id
+JOIN categories ON articles.category_id = categories.id
+WHERE articles.status = 'published'
+ORDER BY articles.published_at DESC;
+```
+
+### 4. 上位 5 件だけ表示する
+
+```sql
+SELECT articles.title, users.name, articles.published_at
+FROM articles
+JOIN users ON articles.user_id = users.id
+WHERE articles.status = 'published'
+ORDER BY articles.published_at DESC
+LIMIT 5;
+```
+
+## メモ
+- `SELECT` = 何を表示するか
+- `FROM` = どこを土台にするか
+- `JOIN` = どのテーブルをつなぐか
+- `ON` = どの列同士をつなぐか
+- `WHERE` = どの行だけに絞るか
+- `ORDER BY` = どんな順番で並べるか
+- `LIMIT` = 何件まで表示するか
+- `JOIN` はテーブルをつなぐ
+- `WHERE` は行を絞る
+- `DESC` = 降順 = 新しい順でよく使う
+- 記事タイトルだけなら `articles` 単体でも見られる
+- 投稿者名やカテゴリ名まで見たいなら `JOIN` が必要
+
+## 理解チェック
+- `WHERE articles.status = 'published'` は何をしているか
+- `ORDER BY articles.published_at DESC` は何をしているか
+- `LIMIT 5` は何をしているか
+- `JOIN` と `WHERE` の役割の違いは何か
+- 次の SQL はどんな一覧を作りたい文か
+
+```sql
+SELECT articles.title, users.name, articles.published_at
+FROM articles
+JOIN users ON articles.user_id = users.id
+WHERE articles.status = 'published'
+ORDER BY articles.published_at DESC
+LIMIT 5;
+```
+
+## 終了条件
+- `SELECT` / `FROM` / `JOIN` / `WHERE` / `ORDER BY` / `LIMIT` を役割ごとに読める
+- `JOIN` と `WHERE` の違いを言える
+- `ORDER BY ... DESC` を見て「新しい順」と読める
+- `LIMIT` を見て件数制限だと分かる
+- 記事一覧系の簡単な SQL を日本語で説明できる
