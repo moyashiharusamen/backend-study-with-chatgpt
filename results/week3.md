@@ -565,3 +565,216 @@ LIMIT 5;
 - `ORDER BY ... DESC` を見て「新しい順」と読める
 - `LIMIT` を見て件数制限だと分かる
 - 記事一覧系の簡単な SQL を日本語で説明できる
+
+# Week3 Day4（2026-05-01 / 5月1日（金））
+テーマ: 自分のアプリでよくある取得 SQL を読む
+
+## この日の位置づけ
+- Week3 Day3 では `JOIN` + `WHERE` + `ORDER BY` + `LIMIT` をまとめて読んだ
+- 今日はその続きとして、実務や成果物アプリで本当に出てきそうな一覧・詳細・絞り込み SQL を読む
+- 「文法を読む」から「用途を読む」へ進む日
+
+## 到達目標
+- SQL を見て「一覧用」「詳細用」「絞り込み用」などの用途を言える
+- `articles` が主役の SQL なのか、`faqs` が主役の SQL なのかを見分けられる
+- `WHERE id = ...` を見て「1件詳細を取りたい SQL」と読める
+- `WHERE status = 'published'` を見て「公開済みだけの一覧」と読める
+- `JOIN` がある理由を「表示したい列が別テーブルにあるから」と説明できる
+- 自分の成果物アプリでありそうな SQL を 3〜4 本読んで意味を説明できる
+
+## 学習時間
+- 20:00〜20:45（45分）
+
+## 進め方
+
+### 20:00〜20:05
+導入
+- `SELECT` = 何を表示するか
+- `FROM` = どこを土台にするか
+- `JOIN` = どのテーブルをつなぐか
+- `WHERE` = どの行だけに絞るか
+- `ORDER BY` = どんな順番で並べるか
+- `LIMIT` = 何件まで表示するか
+- 前回は SQL の部品を読んだ
+- 今日は、その SQL がどんな画面で使われそうかまで考える
+
+### 20:05〜20:12
+一覧用 SQL と詳細用 SQL の違いを知る
+- 一覧用 SQL = 複数件を取る
+- 新着記事一覧、公開済み記事一覧、FAQ 一覧など
+- よく出るもの: `WHERE`, `ORDER BY`, `LIMIT`
+
+- 詳細用 SQL = 1件を取る
+- 記事詳細、FAQ 詳細など
+- よく出るもの: `WHERE id = ...`
+
+### 20:12〜20:20
+記事一覧っぽい SQL を読む
+
+```sql
+SELECT articles.title, users.name, categories.name, articles.published_at
+FROM articles
+JOIN users ON articles.user_id = users.id
+JOIN categories ON articles.category_id = categories.id
+WHERE articles.status = 'published'
+ORDER BY articles.published_at DESC
+LIMIT 10;
+```
+
+見るポイント:
+- 表示したいもの: 記事タイトル、投稿者名、カテゴリ名、公開日時
+- 用途: 公開済み記事の一覧画面、新着記事一覧っぽい
+- `JOIN` が必要な理由: 投稿者名は `users`、カテゴリ名は `categories` にあるから
+- `LIMIT 10` があるので、新着 10 件っぽい
+
+### 20:20〜20:27
+記事詳細っぽい SQL を読む
+
+```sql
+SELECT articles.title, articles.body, users.name, categories.name, articles.published_at
+FROM articles
+JOIN users ON articles.user_id = users.id
+JOIN categories ON articles.category_id = categories.id
+WHERE articles.id = 5;
+```
+
+見るポイント:
+- `WHERE articles.id = 5` = 記事 1 件だけを取りたい
+- 用途: 記事詳細画面、管理画面の確認画面など
+- 一覧との違い: id を指定して 1 件だけ取る
+
+### 20:27〜20:34
+FAQ 一覧っぽい SQL を読む
+
+```sql
+SELECT faqs.question, users.name, faqs.created_at
+FROM faqs
+JOIN users ON faqs.user_id = users.id
+ORDER BY faqs.created_at DESC
+LIMIT 20;
+```
+
+見るポイント:
+- `FROM faqs` なので FAQ が主役
+- 表示したいもの: 質問文、作成者名、作成日時
+- 用途: FAQ 一覧、管理画面の新しい FAQ 一覧
+- `JOIN` が必要な理由: 作成者名は `users` にあるから
+
+### 20:34〜20:39
+カテゴリで絞る記事一覧を読む
+
+```sql
+SELECT articles.title, categories.name, articles.published_at
+FROM articles
+JOIN categories ON articles.category_id = categories.id
+WHERE categories.name = 'お知らせ'
+ORDER BY articles.published_at DESC;
+```
+
+見るポイント:
+- `WHERE categories.name = 'お知らせ'` = カテゴリ名で絞り込む
+- `WHERE` は `articles` の列だけでなく、JOIN 先の列にも使える
+- 用途: お知らせカテゴリの記事一覧
+
+### 20:39〜20:42
+自分のアプリに当てはめるミニ演習
+- 「公開済み記事の新着 10 件を見たい」
+  - `articles` を土台
+  - `WHERE status = 'published'`
+  - `ORDER BY published_at DESC`
+  - `LIMIT 10`
+
+- 「記事 id = 5 の詳細を見たい」
+  - `WHERE articles.id = 5`
+
+- 「FAQ を新しい順で 20 件見たい」
+  - `faqs` を土台
+  - `ORDER BY faqs.created_at DESC`
+  - `LIMIT 20`
+
+- 「お知らせカテゴリの記事一覧を見たい」
+  - `articles` と `categories` を JOIN
+  - `WHERE categories.name = 'お知らせ'`
+
+### 20:42〜20:45
+まとめ
+- 一覧用 SQL と詳細用 SQL の違い
+- `FROM` を見ると何が分かるか
+- `WHERE` は JOIN した先の列にも使えるか
+- この 3 つを言えるか確認する
+
+## この日に使うサンプル SQL
+
+### 1. 公開済み記事の新着 10 件
+
+```sql
+SELECT articles.title, users.name, categories.name, articles.published_at
+FROM articles
+JOIN users ON articles.user_id = users.id
+JOIN categories ON articles.category_id = categories.id
+WHERE articles.status = 'published'
+ORDER BY articles.published_at DESC
+LIMIT 10;
+```
+
+### 2. 記事 id = 5 の詳細
+
+```sql
+SELECT articles.title, articles.body, users.name, categories.name, articles.published_at
+FROM articles
+JOIN users ON articles.user_id = users.id
+JOIN categories ON articles.category_id = categories.id
+WHERE articles.id = 5;
+```
+
+### 3. FAQ の新しい順 20 件
+
+```sql
+SELECT faqs.question, users.name, faqs.created_at
+FROM faqs
+JOIN users ON faqs.user_id = users.id
+ORDER BY faqs.created_at DESC
+LIMIT 20;
+```
+
+### 4. お知らせカテゴリの記事一覧
+
+```sql
+SELECT articles.title, categories.name, articles.published_at
+FROM articles
+JOIN categories ON articles.category_id = categories.id
+WHERE categories.name = 'お知らせ'
+ORDER BY articles.published_at DESC;
+```
+
+## メモ
+- 一覧用 SQL は複数件を取る
+- 詳細用 SQL は 1 件を取る
+- `FROM articles` なら記事が主役
+- `FROM faqs` なら FAQ が主役
+- `JOIN` が必要なのは、表示したい値が別テーブルにあるから
+- `WHERE articles.status = 'published'` で公開済みだけに絞れる
+- `WHERE categories.name = 'お知らせ'` のように JOIN 先の列でも絞れる
+- `WHERE id = ...` は 1 件取得によく使う
+
+## 理解チェック
+- `WHERE articles.id = 5` はどんな用途の SQL っぽいか
+- `FROM faqs` を見ると、何が主役の SQL だと分かるか
+- なぜ記事一覧で `users` や `categories` を JOIN するのか
+- `WHERE categories.name = 'お知らせ'` は何をしているか
+- 次の SQL はどんな画面のためのものっぽいか
+
+```sql
+SELECT faqs.question, users.name, faqs.created_at
+FROM faqs
+JOIN users ON faqs.user_id = users.id
+ORDER BY faqs.created_at DESC
+LIMIT 20;
+```
+
+## 終了条件
+- SQL を見て「一覧用」「詳細用」の違いを言える
+- `FROM` を見て、どのテーブルが主役か分かる
+- `WHERE id = ...` を見て 1 件取得だと読める
+- `WHERE status = ...` や `WHERE categories.name = ...` を見て絞り込みの意味が分かる
+- 自分のアプリでありそうな SQL を日本語で説明できる
