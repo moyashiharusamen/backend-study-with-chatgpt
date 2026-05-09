@@ -227,3 +227,207 @@ LIMIT 10;
 - JOIN が不要な場面もあると分かる
 - 条件が 2 つある WHERE を読める
 - 自分のアプリでありそうな SQL を、画面イメージつきで説明できる
+
+# Week4 Day2（2026-05-09 / 5月9日（土））
+テーマ: 検索条件を少し増やした SQL を読む
+
+## この日の位置づけ
+- Week4 Day1 では、公開画面向け SQL と管理画面向け SQL の違いを読んだ
+- 今日はその続きとして、検索画面や絞り込み画面で出てきそうな SQL を読む
+- 「一覧 SQL を読む」から「検索条件つき SQL を読む」へ進む日
+
+## 到達目標
+- `WHERE` の条件が増えても、1つずつ分けて読める
+- `AND` を見て「両方に当てはまる」と言える
+- `OR` を見て「どちらかに当てはまる」と言える
+- `LIKE` を見て「キーワード検索っぽい条件」と言える
+- 記事タイトル検索、カテゴリ絞り込み、公開済み絞り込みなどを読める
+- 検索画面でありそうな SQL を 3〜4 本読んで、日本語で意味を説明できる
+
+## 学習時間
+- 20:00〜20:45（45分）
+
+## 進め方
+
+### 20:00〜20:05
+導入
+- `SELECT` = 何を表示するか
+- `FROM` = どのテーブルを土台にするか
+- `JOIN` = 別テーブルをつなぐ
+- `WHERE` = 条件で絞る
+- `ORDER BY` = 並び替える
+- `LIMIT` = 件数を制限する
+- 前回は「どんな画面の SQL か」を読んだ
+- 今日は「検索条件が少し増えたときでも読めるようにする」
+
+### 20:05〜20:12
+条件が増えたときの読み方を整理する
+- `AND` = 両方の条件を満たす
+- `OR` = どちらかの条件を満たす
+- `LIKE` = キーワードを含むかどうかを見る
+- `title LIKE '%Rails%'` のように書くと、タイトルに Rails を含むものを探すイメージ
+- SQL が長くなっても、条件を 1 個ずつ区切れば読める
+
+### 20:12〜20:20
+公開済み + カテゴリ絞り込みを読む
+
+```sql
+SELECT articles.title, categories.name, articles.published_at
+FROM articles
+JOIN categories ON articles.category_id = categories.id
+WHERE articles.status = 'published'
+  AND categories.name = 'お知らせ'
+ORDER BY articles.published_at DESC;
+```
+
+見るポイント:
+- `articles.status = 'published'` = 公開済みだけ
+- `categories.name = 'お知らせ'` = お知らせカテゴリだけ
+- `AND` = 両方に当てはまるものだけ残す
+- 用途: 公開サイトのお知らせ一覧、お知らせカテゴリの記事一覧
+
+### 20:20〜20:28
+タイトルのキーワード検索を読む
+
+```sql
+SELECT articles.title, articles.published_at
+FROM articles
+WHERE articles.title LIKE '%Rails%'
+ORDER BY articles.published_at DESC;
+```
+
+見るポイント:
+- `LIKE '%Rails%'` = タイトルに Rails を含む記事を探す
+- `%` は前後に何か文字があってもよい、というイメージ
+- 用途: 記事タイトル検索、検索窓からの検索結果一覧
+
+### 20:28〜20:34
+タイトルまたは本文にキーワードがある形を読む
+
+```sql
+SELECT articles.title, articles.body
+FROM articles
+WHERE articles.title LIKE '%Rails%'
+   OR articles.body LIKE '%Rails%';
+```
+
+見るポイント:
+- タイトルに Rails が入っている、または本文に Rails が入っている
+- `OR` = どちらかに当てはまればよい
+- 用途: サイト内検索、記事検索の最初の形
+
+### 20:34〜20:39
+公開済み + キーワード検索を組み合わせて読む
+
+```sql
+SELECT articles.title, articles.published_at
+FROM articles
+WHERE articles.status = 'published'
+  AND articles.title LIKE '%SQL%'
+ORDER BY articles.published_at DESC;
+```
+
+見るポイント:
+- 公開済みだけ
+- その中でタイトルに SQL を含むものだけ
+- `AND` で公開条件と検索条件を組み合わせている
+- 用途: 公開サイト内検索、公開済み記事だけを対象にした検索結果一覧
+
+### 20:39〜20:42
+自分のアプリに当てはめるミニ演習
+- 「公開済みのお知らせ記事だけを見たい」
+  - `status = 'published'`
+  - `categories.name = 'お知らせ'`
+  - `AND` でつなぐ
+
+- 「タイトルに Rails を含む記事を見たい」
+  - `title LIKE '%Rails%'`
+
+- 「タイトルか本文のどちらかに SQL を含む記事を見たい」
+  - `title LIKE '%SQL%'`
+  - `body LIKE '%SQL%'`
+  - `OR` でつなぐ
+
+- 「公開済み記事の中からタイトルに FAQ を含むものだけを見たい」
+  - `status = 'published'`
+  - `title LIKE '%FAQ%'`
+  - `AND` でつなぐ
+
+### 20:42〜20:45
+まとめ
+- `AND` と `OR` の違い
+- `LIKE '%Rails%'` は何をしているか
+- 条件が増えた SQL を、1 個ずつ分けて読めるか確認する
+
+## この日に使うサンプル SQL
+
+### 1. 公開済みのお知らせ記事一覧
+
+```sql
+SELECT articles.title, categories.name, articles.published_at
+FROM articles
+JOIN categories ON articles.category_id = categories.id
+WHERE articles.status = 'published'
+  AND categories.name = 'お知らせ'
+ORDER BY articles.published_at DESC;
+```
+
+### 2. タイトルに Rails を含む記事一覧
+
+```sql
+SELECT articles.title, articles.published_at
+FROM articles
+WHERE articles.title LIKE '%Rails%'
+ORDER BY articles.published_at DESC;
+```
+
+### 3. タイトルまたは本文に Rails を含む記事一覧
+
+```sql
+SELECT articles.title, articles.body
+FROM articles
+WHERE articles.title LIKE '%Rails%'
+   OR articles.body LIKE '%Rails%';
+```
+
+### 4. 公開済み記事の中から SQL を含むタイトルを探す
+
+```sql
+SELECT articles.title, articles.published_at
+FROM articles
+WHERE articles.status = 'published'
+  AND articles.title LIKE '%SQL%'
+ORDER BY articles.published_at DESC;
+```
+
+## この日のメモに残すとよい内容
+- `AND` = 両方の条件を満たすものだけを残す
+- `OR` = どちらかの条件に当てはまればよい
+- `LIKE` = キーワードを含むかどうかを見る
+- `%キーワード%` は部分一致の最初の形として読んでよい
+- 条件が 2 つ以上あっても、1 つずつ日本語に直す
+- そのあと `AND` / `OR` の意味を足す
+- `status = 'published'` は公開画面向けでよく出る
+- `LIKE` は検索窓っぽい
+- カテゴリ条件は絞り込み画面っぽい
+
+## 理解チェック
+- `AND` は何を意味するか
+- `OR` は何を意味するか
+- `articles.title LIKE '%Rails%'` は何をしているか
+- `WHERE articles.status = 'published' AND categories.name = 'お知らせ'` は何をしているか
+- 次の SQL はどんな検索のためのものっぽいか
+
+```sql
+SELECT articles.title, articles.body
+FROM articles
+WHERE articles.title LIKE '%Rails%'
+   OR articles.body LIKE '%Rails%';
+```
+
+## 終了条件
+- `AND` を見て「両方の条件」と言える
+- `OR` を見て「どちらかの条件」と言える
+- `LIKE` を見てキーワード検索だと分かる
+- 条件が複数ある SQL を、1 つずつ分けて読める
+- 検索画面っぽい SQL を日本語で説明できる
