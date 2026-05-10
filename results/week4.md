@@ -431,3 +431,263 @@ WHERE articles.title LIKE '%Rails%'
 - `LIKE` を見てキーワード検索だと分かる
 - 条件が複数ある SQL を、1 つずつ分けて読める
 - 検索画面っぽい SQL を日本語で説明できる
+
+# Week4 Day3（2026-05-10 / 5月10日（日））
+テーマ: 検索条件を日本語の要件から SQL に言い換える練習
+
+## この日の位置づけ
+- Week4 Day2 では、`AND` / `OR` / `LIKE` を使った検索条件つき SQL を読んだ
+- 今日はその続きとして、日本語の要件を SQL の部品に分けて考える練習をする
+- 「SQL を読む」から「日本語の要件を SQL に近い形へ分解する」へ進む日
+
+## 到達目標
+- 日本語の要件を見て、主役のテーブルを選べる
+- 表示したい列を考えられる
+- `WHERE` に入りそうな条件を見つけられる
+- `ORDER BY` と `LIMIT` が必要か判断できる
+- `=` と `LIKE` の使い分けをざっくり説明できる
+- 簡単な要件を、SQL の形に近い部品へ分解して説明できる
+
+## 学習時間
+- 10:30〜11:30（60分）
+
+## 進め方
+
+### 10:30〜10:35
+導入
+- `AND` = 両方の条件
+- `OR` = どちらかの条件
+- `LIKE '%Rails%'` = Rails を含む
+- 前回は検索条件つき SQL を読んだ
+- 今日は検索したい内容を、日本語から SQL の部品に分ける
+
+### 10:35〜10:45
+日本語の要件を SQL にするときの考え方を整理する
+まずは 5 つの部品に分ける
+1. 主役のテーブルは何か
+2. 何を表示したいか
+3. 条件は何か
+4. 並び順は必要か
+5. 件数制限は必要か
+
+例:
+- 記事を探すなら `articles`
+- FAQ を探すなら `faqs`
+- 投稿者名やカテゴリ名を見たいなら JOIN が必要になることがある
+
+### 10:45〜10:55
+要件1: 「公開済み記事の新着 5 件」を分解する
+
+日本語の要件:
+- 公開済み記事の新着 5 件を表示したい
+
+分解:
+- 主役のテーブル: `articles`
+- 表示したいもの: `title`, `published_at`
+- 条件: `status = 'published'`
+- 並び順: `published_at DESC`
+- 件数制限: `LIMIT 5`
+
+SQL 例:
+
+```sql
+SELECT articles.title, articles.published_at
+FROM articles
+WHERE articles.status = 'published'
+ORDER BY articles.published_at DESC
+LIMIT 5;
+```
+
+### 10:55〜11:05
+要件2: 「タイトルに Rails を含む公開済み記事」を分解する
+
+日本語の要件:
+- タイトルに Rails を含む公開済み記事を、新しい順で表示したい
+
+分解:
+- 主役のテーブル: `articles`
+- 表示したいもの: `title`, `published_at`
+- 条件1: `status = 'published'`
+- 条件2: `title LIKE '%Rails%'`
+- 条件のつなぎ方: `AND`
+- 並び順: `published_at DESC`
+
+SQL 例:
+
+```sql
+SELECT articles.title, articles.published_at
+FROM articles
+WHERE articles.status = 'published'
+  AND articles.title LIKE '%Rails%'
+ORDER BY articles.published_at DESC;
+```
+
+確認ポイント:
+- `=` = 完全一致
+- `LIKE '%Rails%'` = Rails を含む
+
+### 11:05〜11:15
+要件3: 「お知らせカテゴリの公開済み記事一覧」を分解する
+
+日本語の要件:
+- お知らせカテゴリの公開済み記事一覧を、新しい順で表示したい
+
+分解:
+- 主役のテーブル: `articles`
+- 表示したいもの: `articles.title`, `categories.name`, `articles.published_at`
+- JOIN が必要な相手: `categories`
+- 条件1: `articles.status = 'published'`
+- 条件2: `categories.name = 'お知らせ'`
+- 並び順: `articles.published_at DESC`
+
+SQL 例:
+
+```sql
+SELECT articles.title, categories.name, articles.published_at
+FROM articles
+JOIN categories ON articles.category_id = categories.id
+WHERE articles.status = 'published'
+  AND categories.name = 'お知らせ'
+ORDER BY articles.published_at DESC;
+```
+
+確認ポイント:
+- カテゴリ名は `articles` ではなく `categories` にある
+- だから JOIN が必要
+
+### 11:15〜11:22
+要件4: 「自分が作成した下書き記事一覧」を分解する
+
+日本語の要件:
+- `user_id = 3` のユーザーが作成した、下書き記事一覧を見たい
+
+分解:
+- 主役のテーブル: `articles`
+- 表示したいもの: `title`, `status`, `created_at`
+- 条件1: `user_id = 3`
+- 条件2: `status = 'draft'`
+- 並び順: `created_at DESC`
+
+SQL 例:
+
+```sql
+SELECT articles.title, articles.status, articles.created_at
+FROM articles
+WHERE articles.user_id = 3
+  AND articles.status = 'draft'
+ORDER BY articles.created_at DESC;
+```
+
+確認ポイント:
+- 表示したいものが全部 `articles` にあるなら JOIN は不要
+
+### 11:22〜11:28
+要件5: 「FAQ でログインを含む質問を探す」を分解する
+
+日本語の要件:
+- FAQ の中から、質問文に「ログイン」を含むものを新しい順で見たい
+
+分解:
+- 主役のテーブル: `faqs`
+- 表示したいもの: `question`, `created_at`
+- 条件: `question LIKE '%ログイン%'`
+- 並び順: `created_at DESC`
+
+SQL 例:
+
+```sql
+SELECT faqs.question, faqs.created_at
+FROM faqs
+WHERE faqs.question LIKE '%ログイン%'
+ORDER BY faqs.created_at DESC;
+```
+
+確認ポイント:
+- 主役が `articles` から `faqs` に変わっても、考え方は同じ
+
+### 11:28〜11:30
+まとめ
+- 日本語の要件を見たとき、最初に何を決めるか
+- `=` と `LIKE` の違い
+- JOIN が必要かどうかをどう判断するか
+- この 3 つを言えるか確認する
+
+## この日に使うサンプル SQL
+
+### 1. 公開済み記事の新着 5 件
+
+```sql
+SELECT articles.title, articles.published_at
+FROM articles
+WHERE articles.status = 'published'
+ORDER BY articles.published_at DESC
+LIMIT 5;
+```
+
+### 2. タイトルに Rails を含む公開済み記事
+
+```sql
+SELECT articles.title, articles.published_at
+FROM articles
+WHERE articles.status = 'published'
+  AND articles.title LIKE '%Rails%'
+ORDER BY articles.published_at DESC;
+```
+
+### 3. お知らせカテゴリの公開済み記事一覧
+
+```sql
+SELECT articles.title, categories.name, articles.published_at
+FROM articles
+JOIN categories ON articles.category_id = categories.id
+WHERE articles.status = 'published'
+  AND categories.name = 'お知らせ'
+ORDER BY articles.published_at DESC;
+```
+
+### 4. 自分が作成した下書き記事一覧
+
+```sql
+SELECT articles.title, articles.status, articles.created_at
+FROM articles
+WHERE articles.user_id = 3
+  AND articles.status = 'draft'
+ORDER BY articles.created_at DESC;
+```
+
+### 5. FAQ の中からログインを含む質問を探す
+
+```sql
+SELECT faqs.question, faqs.created_at
+FROM faqs
+WHERE faqs.question LIKE '%ログイン%'
+ORDER BY faqs.created_at DESC;
+```
+
+## この日のメモに残すとよい内容
+- 日本語の要件を分解するときの順番:
+  - 主役のテーブル
+  - 表示したい列
+  - 条件
+  - 並び順
+  - 件数制限
+- `=` = 完全一致
+- `LIKE '%キーワード%'` = 含む検索
+- JOIN が必要なのは、表示したい列が別テーブルにあるとき
+- JOIN が不要なのは、必要な列が主役のテーブルに全部あるとき
+- いきなり全文を書こうとせず、まず日本語の条件を 1 個ずつ分ける
+
+## 理解チェック
+- 「公開済み記事の新着 5 件」を SQL にするとき、`WHERE` / `ORDER BY` / `LIMIT` には何が入りそうか
+- `title = 'Rails'` と `title LIKE '%Rails%'` の違いは何か
+- 「お知らせカテゴリの記事一覧」で JOIN が必要なのはなぜか
+- 「user_id = 3 の下書き記事一覧」は、どんな条件が `WHERE` に入りそうか
+- 「FAQ の中からログインを含む質問を探す」とき、主役のテーブルは何か
+
+## 終了条件
+- 日本語の要件を見て、主役のテーブルを選べる
+- 表示したい列を考えられる
+- `WHERE` に入りそうな条件を言える
+- `ORDER BY` と `LIMIT` が必要か判断できる
+- `=` と `LIKE` の使い分けを説明できる
+- 要件を SQL の部品に分解して説明できる
